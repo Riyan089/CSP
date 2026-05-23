@@ -9,7 +9,16 @@ Usage:
 """
 
 import torch
+import numpy
 
+# ✅ Add this block at the top
+try:
+    torch.serialization.add_safe_globals([
+        numpy._core.multiarray._reconstruct,
+        numpy._core.multiarray.scalar,
+    ])
+except AttributeError:
+    pass  #
 
 def _create(name, pretrained=True, channels=3, classes=80, autoshape=True, verbose=True, device=None):
     """Creates or loads a YOLOv5 model
@@ -50,7 +59,7 @@ def _create(name, pretrained=True, channels=3, classes=80, autoshape=True, verbo
             cfg = list((Path(__file__).parent / 'models').rglob(f'{path.stem}.yaml'))[0]  # model.yaml path
             model = Model(cfg, channels, classes)  # create model
             if pretrained:
-                ckpt = torch.load(attempt_download(path), map_location=device,  weight_only=False)  # load
+                ckpt = torch.load(attempt_download(path), map_location=device,  weights_only=False)  # load
                 csd = ckpt['model'].float().state_dict()  # checkpoint state_dict as FP32
                 csd = intersect_dicts(csd, model.state_dict(), exclude=['anchors'])  # intersect
                 model.load_state_dict(csd, strict=False)  # load
